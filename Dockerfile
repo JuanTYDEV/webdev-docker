@@ -1,0 +1,38 @@
+FROM php:8.2-apache
+
+# Instalar extensiones PHP necesarias
+RUN docker-php-ext-install pdo pdo_mysql mysqli
+
+# Habilitar mod_rewrite de Apache
+RUN a2enmod rewrite
+
+# Configurar el directorio de trabajo
+WORKDIR /var/www/html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
