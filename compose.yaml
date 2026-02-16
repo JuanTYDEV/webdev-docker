@@ -1,0 +1,96 @@
+services:
+  # --- SERVICIO COMÚN (PHP) ---
+  webserver:
+    # Este servicio se activará si usas el perfil 'mysql' O 'postgres'
+    profiles: ["mysql", "postgres"] 
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php_web_server
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    networks:
+      - app-network
+
+
+  # --- STACK MYSQL ---
+  database:
+    profiles: ["mysql"] # Solo se enciende con el perfil 'mysql'
+    image: mysql:8.0
+    container_name: mysql_database
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - app-network
+
+  phpmyadmin:
+    profiles: ["mysql"] # Solo se enciende con el perfil 'mysql'
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - database
+    networks:
+      - app-network
+
+  # --- STACK POSTGRES ---
+  db_sistema:
+    profiles: ["postgres"] # Solo se enciende con el perfil 'postgres'
+    image: postgres:16-alpine
+    container_name: mi_startup_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: usuario_dev
+      POSTGRES_PASSWORD: password_seguro_123
+      POSTGRES_DB: startup_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  pgadmin:
+    profiles: ["postgres"] # Solo se enciende con el perfil 'postgres'
+    image: dpage/pgadmin4
+    container_name: mi_startup_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mistartup.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db_sistema
+    networks:
+      - app-network
+
+# --- VOLÚMENES Y REDES ---
+volumes:
+  db_data:       # Para MySQL
+  postgres_data: # Para Postgres
+
+networks:
+  app-network:
+    driver: bridge
