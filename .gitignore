@@ -1,0 +1,7 @@
+# Ignorar el archivo de variables de entorno con secretos
+.env
+
+# (Opcional) Otras cosas comunes a ignorar en proyectos Docker/PHP
+.idea/
+.vscode/
+.DS_Store

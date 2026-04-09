@@ -2,7 +2,7 @@ services:
   # --- SERVICIO COMÚN (PHP) ---
   webserver:
     # Este servicio se activará si usas el perfil 'mysql' O 'postgres'
-    profiles: ["mysql", "postgres"] 
+    profiles: ["mysql", "postgres"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,7 +18,6 @@ services:
       - APACHE_DOCUMENT_ROOT=/var/www/html
     networks:
       - app-network
-
 
   # --- STACK MYSQL ---
   database:
@@ -86,9 +85,19 @@ services:
     networks:
       - app-network
 
+  cloudflare-tunnel:
+    profiles: ["tunnel"] # 1. Añadimos el perfil para que no encienda por defecto
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_connector
+    restart: unless-stopped
+    # 2. Usamos la variable de entorno. Si no existe, usa "NO_TOKEN" para evitar errores extraños
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN:-NO_TOKEN}
+    networks:
+      - app-network
+      
 # --- VOLÚMENES Y REDES ---
 volumes:
-  db_data:       # Para MySQL
+  db_data: # Para MySQL
   postgres_data: # Para Postgres
 
 networks:
